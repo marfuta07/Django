@@ -10,9 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -125,4 +125,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Исправил на правильную настройку
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Подключение PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'skystore_db',
+        'USER': 'postgres',
+        'PASSWORD': '120508',  # Твой пароль
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
