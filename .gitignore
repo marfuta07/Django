@@ -1,15 +1,22 @@
-# Virtual Environment (Poetry)
+# Виртуальное окружение
 .venv/
 venv/
 env/
 
+# Переменные окружения
+.env
+.env.local
+.env.*.local
+
+# База данных
+db.sqlite3
+*.sqlite3
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
 *.so
 *.egg
 *.egg-info/
@@ -20,21 +27,17 @@ build/
 # Django
 *.log
 *.pot
-*.pyc
-db.sqlite3
 media/
 staticfiles/
 static/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
 .DS_Store
 Thumbs.db
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Poetry
+poetry.toml
