@@ -1,28 +1,29 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from catalog.models import Product, Category
+from catalog.forms import ContactForm
 
 
 def home(request):
     """Главная страница с каталогом товаров"""
-    products = Product.objects.select_related('category').all()
+    products = Product.objects.all()
     return render(request, 'catalog/home.html', {'products': products})
 
 
 def contacts(request):
     """Страница контактов с формой обратной связи"""
     if request.method == 'POST':
-        name = request.POST.get('name')
-        phone = request.POST.get('phone')
-        message = request.POST.get('message')
-
-        if name and phone and message:
-            print(f'Сообщение от {name} ({phone}): {message}')
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Ваше сообщение успешно отправлено! Спасибо! ✅')
+            form = ContactForm()
         else:
-            messages.error(request, 'Пожалуйста, заполните все поля! ⚠️')
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме ⚠️')
+    else:
+        form = ContactForm()
 
-    return render(request, 'catalog/contacts.html')
+    return render(request, 'catalog/contacts.html', {'form': form})
 
 
 def product_detail(request, pk):
