@@ -1,32 +1,42 @@
-from django.shortcuts import render, get_object_or_404
-from django.contrib import messages
-from catalog.models import Product, Category
+from django.views.generic import ListView, DetailView, TemplateView
+from django.shortcuts import render
+from catalog.models import Product
 from catalog.forms import ContactForm
 
 
-def home(request):
+class HomeView(ListView):
     """Главная страница с каталогом товаров"""
-    products = Product.objects.all()
-    return render(request, 'catalog/home.html', {'products': products})
+    model = Product
+    template_name = 'catalog/home.html'
+    context_object_name = 'products'
 
 
-def contacts(request):
+class ContactsView(TemplateView):
     """Страница контактов с формой обратной связи"""
-    if request.method == 'POST':
+    template_name = 'catalog/contacts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = ContactForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
         form = ContactForm(request.POST)
+        context = self.get_context_data()
         if form.is_valid():
             form.save()
+            from django.contrib import messages
             messages.success(request, 'Ваше сообщение успешно отправлено! Спасибо! ✅')
             form = ContactForm()
         else:
+            from django.contrib import messages
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме ⚠️')
-    else:
-        form = ContactForm()
-
-    return render(request, 'catalog/contacts.html', {'form': form})
+        context['form'] = form
+        return self.render_to_response(context)
 
 
-def product_detail(request, pk):
+class ProductDetailView(DetailView):
     """Детальная страница товара"""
-    product = get_object_or_404(Product, pk=pk)
-    return render(request, 'catalog/product_detail.html', {'product': product})
+    model = Product
+    template_name = 'catalog/product_detail.html'
+    context_object_name = 'product'
