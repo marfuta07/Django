@@ -5,28 +5,43 @@
 {% block content %}
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
     <h1 class="display-4">Skystore</h1>
-    <p class="lead">Skystore - это отличный вариант хранения ваших плагинов и примеров кода, который вы бы хотели продать</p>
+    <p class="lead">Skystore — отличный вариант хранения ваших плагинов и примеров кода</p>
 </div>
 
 <div class="container">
-    <div class="row text-center">
-        <div class="col-3">
-            <div class="card mb-4 box-shadow">
+    <h2 class="mb-4">Каталог товаров</h2>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+            <div class="card h-100 box-shadow">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <span class="text-muted">Нет изображения</span>
+                    </div>
+                {% endif %}
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">Удобный сервис рассылок</h4>
+                    <h4 class="my-0 font-weight-normal">{{ product.name }}</h4>
                 </div>
-                <div class="card-body">
-                    <h1 class="card-title pricing-card-title">$ 140</h1>
-                    <ul class="list-unstyled mt-3 mb-4 text-start m-3">
-                        <li>- Неограниченная лицензия</li>
-                        <li>- Поддержка</li>
-                        <li>- Установка на сервер</li>
-                        <li>- Получение обновлений</li>
-                    </ul>
-                    <button type="button" class="btn btn-lg btn-block btn-outline-primary">Купить</button>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title">$ {{ product.price }}</h1>
+                    <p class="mt-3 mb-4 text-muted flex-grow-1">
+                        {{ product.description|truncatechars:100 }}
+                    </p>
+                    <small class="text-muted mb-3">Категория: {{ product.category.name }}</small>
+                    <div class="mt-auto">
+                        <a href="{% url 'catalog:product_detail' product.pk %}" class="btn btn-lg btn-block btn-outline-primary w-100 mb-2">Подробнее</a>
+                        <button type="button" class="btn btn-lg btn-block btn-primary w-100">Купить</button>
+                    </div>
                 </div>
             </div>
         </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">Товары пока не добавлены</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

@@ -10,8 +10,8 @@ class Command(BaseCommand):
 
         # Удаляем все существующие данные
         self.stdout.write('🗑️ Удаляем старые данные...')
-        Category.objects.all().delete()
         Product.objects.all().delete()
+        Category.objects.all().delete()
 
         # Создаём категории
         categories_data = [
@@ -35,37 +35,37 @@ class Command(BaseCommand):
         products_data = [
             {
                 'name': 'Удобный сервис рассылок',
-                'description': 'Простой и мощный сервис для email и SMS рассылок.',
+                'description': 'Простой и мощный сервис для email и SMS рассылок. Поддерживает сегментацию аудитории, A/B тестирование, аналитику.',
                 'price': 140.00,
                 'category_name': 'Рассылки'
             },
             {
                 'name': 'Телеграм бот для бизнеса',
-                'description': 'Полноценный бот для Telegram с поддержкой заказов.',
+                'description': 'Полноценный бот для Telegram с поддержкой заказов, оплаты, рассылок и аналитики.',
                 'price': 250.00,
                 'category_name': 'Телеграм боты'
             },
             {
                 'name': 'Django CRM система',
-                'description': 'Готовая CRM система на Django.',
+                'description': 'Готовая CRM система на Django. Включает управление клиентами, заказами, задачами и отчетами.',
                 'price': 500.00,
                 'category_name': 'Веб-приложения'
             },
             {
                 'name': 'Микросервис аутентификации',
-                'description': 'Готовый микросервис для аутентификации на JWT.',
+                'description': 'Готовый микросервис для аутентификации на JWT. Поддерживает регистрацию, вход, обновление токенов.',
                 'price': 300.00,
                 'category_name': 'Микросервисы'
             },
             {
                 'name': 'Telegram бот для магазина',
-                'description': 'Бот для интернет-магазина с корзиной и оплатой.',
+                'description': 'Бот для интернет-магазина с корзиной и оплатой через платежные системы.',
                 'price': 350.00,
                 'category_name': 'Телеграм боты'
             },
             {
                 'name': 'Плагин аналитики',
-                'description': 'Плагин для сбора и отображения аналитики сайта.',
+                'description': 'Плагин для сбора и отображения аналитики сайта. Поддерживает Google Analytics, Yandex Metrica.',
                 'price': 100.00,
                 'category_name': 'Утилиты'
             },
