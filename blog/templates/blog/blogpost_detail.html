@@ -1,0 +1,30 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %} - {{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary mb-3">← К списку</a>
+
+    <article>
+        <h1>{{ post.title }}</h1>
+        <p class="text-muted">
+            📅 {{ post.created_at|date:"d.m.Y H:i" }} |
+            👁️ {{ post.views_count }} просмотров |
+            {% if post.is_published %}✅ Опубликовано{% else %}❌ Черновик{% endif %}
+        </p>
+
+        {% if post.preview %}
+            <img src="{{ post.preview.url }}" class="img-fluid rounded mb-4" alt="{{ post.title }}">
+        {% endif %}
+
+        <div class="content">
+            {{ post.content|linebreaks }}
+        </div>
+
+        <hr>
+        <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-warning">✏️ Редактировать</a>
+        <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-danger">🗑️ Удалить</a>
+    </article>
+</div>
+{% endblock %}
