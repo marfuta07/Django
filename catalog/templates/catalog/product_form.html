@@ -1,23 +1,40 @@
-{% for field in form %}
-    {% if field.name == 'is_published' %}
-        {# Чекбокс — особый случай #}
-        <div class="mb-3 form-check">
-            {{ field }}
-            <label class="form-check-label" for="{{ field.id_for_label }}">
-                {{ field.label }}
-            </label>
-            {% if field.errors %}
-                <div class="text-danger small">{{ field.errors }}</div>
+{% extends 'catalog/base.html' %}
+
+{% block title %} - {% if form.instance.pk %}Редактирование{% else %}Создание{% endif %} товара{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>
+        {% if form.instance.pk %}✏️ Редактирование{% else %}➕ Создание{% endif %} товара
+    </h1>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+            {% if field.name == 'is_published' %}
+                <div class="mb-3 form-check">
+                    {{ field }}
+                    <label class="form-check-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
             {% endif %}
-        </div>
-    {% else %}
-        {# Обычные поля #}
-        <div class="mb-3">
-            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <div class="text-danger small">{{ field.errors }}</div>
-            {% endif %}
-        </div>
-    {% endif %}
-{% endfor %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+        <a href="{% url 'catalog:home' %}" class="btn btn-outline-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}
