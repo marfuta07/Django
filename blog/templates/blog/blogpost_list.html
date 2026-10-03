@@ -1,0 +1,52 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %} - Блог{% endblock %}
+
+{% block content %}
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Блог</h1>
+    <p class="lead">Полезные статьи о разработке</p>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% for post in posts %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                {% if post.preview %}
+                    <img src="{{ post.preview.url }}" class="card-img-top"
+                         style="height: 200px; object-fit: cover;" alt="{{ post.title }}">
+                {% else %}
+                    <div class="bg-light d-flex align-items-center justify-content-center"
+                         style="height: 200px;">
+                        <span class="text-muted">Нет превью</span>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}</h5>
+                    <p class="card-text">{{ post.content|truncatechars:100 }}</p>
+                    <p class="text-muted small">
+                        📅 {{ post.created_at|date:"d.m.Y" }}
+                        👁️ {{ post.views_count }} просмотров
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-sm btn-outline-primary">Читать</a>
+                    <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-sm btn-outline-warning">✏️</a>
+                    <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-sm btn-outline-danger">🗑️</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">Статей пока нет</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'blog:post_create' %}" class="btn btn-primary">➕ Создать статью</a>
+    </div>
+</div>
+{% endblock %}
+
