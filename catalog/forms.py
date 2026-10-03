@@ -28,6 +28,7 @@ class ContactForm(forms.ModelForm):
             raise forms.ValidationError('Телефон должен содержать только цифры')
         return phone
 
+
 # Список запрещённых слов
 FORBIDDEN_WORDS = [
     'казино',
@@ -54,6 +55,7 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         for field_name, field in self.fields.items():
+            # Классы для полей
             if field_name == 'category':
                 field.widget.attrs['class'] = 'form-select'
             elif field_name == 'image':
@@ -61,7 +63,7 @@ class ProductForm(forms.ModelForm):
             else:
                 field.widget.attrs['class'] = 'form-control'
 
-            # Placeholder для полей
+            # Placeholder'ы
             if field_name == 'name':
                 field.widget.attrs['placeholder'] = 'Введите название товара'
             elif field_name == 'description':
@@ -70,9 +72,15 @@ class ProductForm(forms.ModelForm):
             elif field_name == 'price':
                 field.widget.attrs['placeholder'] = 'Введите цену'
 
+        # Русский пустой вариант для категории
+        self.fields['category'].empty_label = 'Выберите категорию'
+
     def clean_name(self):
         """Валидация названия на запрещённые слова"""
         name = self.cleaned_data.get('name')
+        if not name:
+            return name
+
         name_lower = name.lower()
 
         for word in FORBIDDEN_WORDS:
@@ -85,6 +93,9 @@ class ProductForm(forms.ModelForm):
     def clean_description(self):
         """Валидация описания на запрещённые слова"""
         description = self.cleaned_data.get('description')
+        if not description:
+            return description
+
         description_lower = description.lower()
 
         for word in FORBIDDEN_WORDS:
