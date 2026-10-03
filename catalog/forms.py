@@ -48,7 +48,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'image', 'category', 'price']
+        fields = ['name', 'description', 'image', 'category', 'price', 'is_published']
 
     def __init__(self, *args, **kwargs):
         """Стилизация формы через Bootstrap"""
@@ -58,8 +58,8 @@ class ProductForm(forms.ModelForm):
             # Классы для полей
             if field_name == 'category':
                 field.widget.attrs['class'] = 'form-select'
-            elif field_name == 'image':
-                field.widget.attrs['class'] = 'form-control'
+            elif field_name == 'is_published':
+                field.widget.attrs['class'] = 'form-check-input'
             else:
                 field.widget.attrs['class'] = 'form-control'
 
