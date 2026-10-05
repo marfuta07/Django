@@ -1,5 +1,5 @@
 from django import forms
-from catalog.models import ContactRequest
+from catalog.models import ContactRequest, Product
 
 
 class ContactForm(forms.ModelForm):
@@ -27,3 +27,90 @@ class ContactForm(forms.ModelForm):
         if not phone.replace('+', '').replace('-', '').replace(' ', '').isdigit():
             raise forms.ValidationError('Телефон должен содержать только цифры')
         return phone
+
+
+# Список запрещённых слов
+FORBIDDEN_WORDS = [
+    'казино',
+    'криптовалюта',
+    'крипта',
+    'биржа',
+    'дешево',
+    'бесплатно',
+    'обман',
+    'полиция',
+    'радар',
+]
+
+
+class ProductForm(forms.ModelForm):
+    """Форма для создания и редактирования товара"""
+
+    class Meta:
+        model = Product
+        fields = ['name', 'description', 'image', 'category', 'price', 'is_published']
+
+    def __init__(self, *args, **kwargs):
+        """Стилизация формы через Bootstrap"""
+        super().__init__(*args, **kwargs)
+
+        for field_name, field in self.fields.items():
+            # Классы для полей
+            if field_name == 'category':
+                field.widget.attrs['class'] = 'form-select'
+            elif field_name == 'is_published':
+                field.widget.attrs['class'] = 'form-check-input'
+            else:
+                field.widget.attrs['class'] = 'form-control'
+
+            # Placeholder'ы
+            if field_name == 'name':
+                field.widget.attrs['placeholder'] = 'Введите название товара'
+            elif field_name == 'description':
+                field.widget.attrs['placeholder'] = 'Введите описание товара'
+                field.widget.attrs['rows'] = 5
+            elif field_name == 'price':
+                field.widget.attrs['placeholder'] = 'Введите цену'
+
+        # Русский пустой вариант для категории
+        self.fields['category'].empty_label = 'Выберите категорию'
+
+    def clean_name(self):
+        """Валидация названия на запрещённые слова"""
+        name = self.cleaned_data.get('name')
+        if not name:
+            return name
+
+        name_lower = name.lower()
+
+        for word in FORBIDDEN_WORDS:
+            if word in name_lower:
+                raise forms.ValidationError(
+                    f'Слово "{word}" запрещено использовать в названии товара!'
+                )
+        return name
+
+    def clean_description(self):
+        """Валидация описания на запрещённые слова"""
+        description = self.cleaned_data.get('description')
+        if not description:
+            return description
+
+        description_lower = description.lower()
+
+        for word in FORBIDDEN_WORDS:
+            if word in description_lower:
+                raise forms.ValidationError(
+                    f'Слово "{word}" запрещено использовать в описании товара!'
+                )
+        return description
+
+    def clean_price(self):
+        """Валидация цены — не может быть отрицательной"""
+        price = self.cleaned_data.get('price')
+
+        if price is not None and price < 0:
+            raise forms.ValidationError(
+                'Цена товара не может быть отрицательной!'
+            )
+        return price

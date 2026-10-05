@@ -1,7 +1,10 @@
-from django.views.generic import ListView, DetailView, TemplateView
-from django.shortcuts import render
+from django.views.generic import (
+    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+)
+from django.urls import reverse_lazy
+from django.contrib import messages
 from catalog.models import Product
-from catalog.forms import ContactForm
+from catalog.forms import ContactForm, ProductForm
 
 
 class HomeView(ListView):
@@ -25,11 +28,9 @@ class ContactsView(TemplateView):
         context = self.get_context_data()
         if form.is_valid():
             form.save()
-            from django.contrib import messages
             messages.success(request, 'Ваше сообщение успешно отправлено! Спасибо! ✅')
             form = ContactForm()
         else:
-            from django.contrib import messages
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме ⚠️')
         context['form'] = form
         return self.render_to_response(context)
@@ -40,3 +41,30 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
+
+
+# ========== CRUD для Product ==========
+
+class ProductCreateView(CreateView):
+    """Создание товара"""
+    model = Product
+    form_class = ProductForm
+    template_name = 'catalog/product_form.html'
+    success_url = reverse_lazy('catalog:home')
+
+
+class ProductUpdateView(UpdateView):
+    """Редактирование товара"""
+    model = Product
+    form_class = ProductForm
+    template_name = 'catalog/product_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
+
+
+class ProductDeleteView(DeleteView):
+    """Удаление товара"""
+    model = Product
+    template_name = 'catalog/product_confirm_delete.html'
+    success_url = reverse_lazy('catalog:home')
