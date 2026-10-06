@@ -1,11 +1,39 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+
+
+class UserManager(BaseUserManager):
+    """Менеджер для кастомной модели User"""
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Создание обычного пользователя"""
+        if not email:
+            raise ValueError('Email обязателен для создания пользователя')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Создание суперпользователя"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Суперпользователь должен иметь is_staff=True')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Суперпользователь должен иметь is_superuser=True')
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
     """Кастомная модель пользователя с email как логином"""
 
-    username = None  # убираем стандартный username
+    username = None
 
     email = models.EmailField(
         unique=True,
@@ -30,8 +58,10 @@ class User(AbstractUser):
         verbose_name='Страна'
     )
 
-    USERNAME_FIELD = 'email'       # вход по email
-    REQUIRED_FIELDS = []            # обязательные поля для createsuperuser
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()   # ← ВАЖНО! Кастомный менеджер
 
     class Meta:
         verbose_name = 'Пользователь'
