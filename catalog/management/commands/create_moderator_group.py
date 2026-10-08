@@ -23,10 +23,15 @@ class Command(BaseCommand):
 
         # Права:
         # 1. can_unpublish_product (кастомное)
-        # 2. delete_product (встроенное)
+        # 2. change_product (для редактирования)
+        # 3. delete_product (для удаления)
         permissions = [
             Permission.objects.get(
                 codename='can_unpublish_product',
+                content_type=content_type
+            ),
+            Permission.objects.get(
+                codename='change_product',
                 content_type=content_type
             ),
             Permission.objects.get(

@@ -10,14 +10,14 @@ from catalog.forms import ContactForm, ProductForm
 
 
 class HomeView(ListView):
-    """Главная страница с каталогом товаров"""
+    """Главная страница с каталогом товаров (доступна всем)"""
     model = Product
     template_name = 'catalog/home.html'
     context_object_name = 'products'
 
 
 class ContactsView(TemplateView):
-    """Страница контактов"""
+    """Страница контактов с формой обратной связи (доступна всем)"""
     template_name = 'catalog/contacts.html'
 
     def get_context_data(self, **kwargs):
@@ -39,7 +39,7 @@ class ContactsView(TemplateView):
 
 
 class ProductDetailView(DetailView):
-    """Детальная страница товара"""
+    """Детальная страница товара (доступна всем)"""
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
@@ -63,21 +63,31 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
 
 
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """Редактирование товара (только владелец)"""
+    """Редактирование товара (владелец ИЛИ модератор)"""
     model = Product
     form_class = ProductForm
     template_name = 'catalog/product_form.html'
     login_url = reverse_lazy('users:login')
 
     def test_func(self):
-        """Проверка: только владелец может редактировать"""
+        """Проверка: владелец ИЛИ модератор с правом change_product"""
         product = self.get_object()
-        return product.owner == self.request.user
+        user = self.request.user
+
+        # Владелец может редактировать
+        if product.owner == user:
+            return True
+
+        # Модератор с правом change_product может редактировать
+        if user.has_perm('catalog.change_product'):
+            return True
+
+        return False
 
     def handle_no_permission(self):
-        """Если не владелец — ошибка 403"""
+        """Если не владелец и не модератор — ошибка 403"""
         if self.request.user.is_authenticated:
-            raise PermissionDenied('Вы не являетесь владельцем этого товара!')
+            raise PermissionDenied('У вас нет прав на редактирование этого товара!')
         return super().handle_no_permission()
 
     def get_success_url(self):
@@ -111,6 +121,8 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if self.request.user.is_authenticated:
             raise PermissionDenied('У вас нет прав на удаление этого товара!')
         return super().handle_no_permission()
+
+
 class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Отмена публикации (только модератор с правом can_unpublish_product)"""
     model = Product
@@ -121,6 +133,12 @@ class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         """Только модератор с can_unpublish_product"""
         return self.request.user.has_perm('catalog.can_unpublish_product')
+
+    def handle_no_permission(self):
+        """Если не модератор — ошибка 403"""
+        if self.request.user.is_authenticated:
+            raise PermissionDenied('У вас нет прав на снятие с публикации!')
+        return super().handle_no_permission()
 
     def form_valid(self, form):
         """Меняем статус на False"""
