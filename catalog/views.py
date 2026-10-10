@@ -141,11 +141,12 @@ class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().handle_no_permission()
 
     def form_valid(self, form):
-        """Меняем статус на False"""
-        product = self.get_object()
-        product.is_published = False
-        product.save()
-        messages.success(self.request, f'Товар "{product.name}" снят с публикации')
+        """Снимаем товар с публикации"""
+        form.instance.is_published = False
+        messages.success(
+            self.request,
+            f'Товар "{form.instance.name}" снят с публикации',
+        )
         return super().form_valid(form)
 
     def get_success_url(self):
