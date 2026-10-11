@@ -13,7 +13,6 @@ from catalog.forms import ContactForm, ProductForm
 from catalog.services import get_products_by_category
 
 
-
 class HomeView(ListView):
     """Главная страница с низкоуровневым кэшированием списка"""
     model = Product
@@ -173,14 +172,15 @@ class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_success_url(self):
         return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
 
+
 class CategoryProductsView(ListView):
-    """Список товаров в категории"""
+    """Список товаров в категории (с кэшированием через сервис category_{id})"""
     model = Product
     template_name = 'catalog/category_products.html'
     context_object_name = 'products'
 
     def get_queryset(self):
-        """Используем сервисную функцию"""
+        """Используем сервисную функцию с кэшем category_{id}"""
         category_id = self.kwargs.get('category_id')
         return get_products_by_category(category_id)
 
