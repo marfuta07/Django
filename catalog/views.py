@@ -5,7 +5,10 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from catalog.models import Product
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from catalog.models import Product, Category
 from catalog.forms import ContactForm, ProductForm
 
 
@@ -38,8 +41,9 @@ class ContactsView(TemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(cache_page(60 * 5), name='dispatch')   # кэш на 5 минут
 class ProductDetailView(DetailView):
-    """Детальная страница товара (доступна всем)"""
+    """Детальная страница товара с кэшированием на 5 минут"""
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
@@ -56,10 +60,12 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     login_url = reverse_lazy('users:login')
 
     def form_valid(self, form):
-        """Автоматически привязываем владельца"""
+        """Автоматически привязываем владельца + сброс кэша"""
         form.instance.owner = self.request.user
         messages.success(self.request, 'Товар успешно создан! ✅')
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        cache.delete('home_products_list')   # ← сброс кэша списка
+        return response
 
 
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -74,21 +80,22 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         product = self.get_object()
         user = self.request.user
 
-        # Владелец может редактировать
         if product.owner == user:
             return True
-
-        # Модератор с правом change_product может редактировать
         if user.has_perm('catalog.change_product'):
             return True
-
         return False
 
     def handle_no_permission(self):
-        """Если не владелец и не модератор — ошибка 403"""
         if self.request.user.is_authenticated:
             raise PermissionDenied('У вас нет прав на редактирование этого товара!')
         return super().handle_no_permission()
+
+    def form_valid(self, form):
+        """Сброс кэша после сохранения"""
+        response = super().form_valid(form)
+        cache.delete('home_products_list')   # ← сброс кэша списка
+        return response
 
     def get_success_url(self):
         return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
@@ -106,27 +113,28 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         product = self.get_object()
         user = self.request.user
 
-        # Владелец может удалять
         if product.owner == user:
             return True
-
-        # Модератор с правом delete_product может удалять
         if user.has_perm('catalog.delete_product'):
             return True
-
         return False
 
     def handle_no_permission(self):
-        """Если не владелец и не модератор — ошибка 403"""
         if self.request.user.is_authenticated:
             raise PermissionDenied('У вас нет прав на удаление этого товара!')
         return super().handle_no_permission()
+
+    def form_valid(self, form):
+        """Сброс кэша после удаления"""
+        response = super().form_valid(form)
+        cache.delete('home_products_list')   # ← сброс кэша списка
+        return response
 
 
 class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Отмена публикации (только модератор с правом can_unpublish_product)"""
     model = Product
-    fields = []  # ничего не редактируем
+    fields = []
     template_name = 'catalog/product_unpublish.html'
     login_url = reverse_lazy('users:login')
 
@@ -135,7 +143,6 @@ class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user.has_perm('catalog.can_unpublish_product')
 
     def handle_no_permission(self):
-        """Если не модератор — ошибка 403"""
         if self.request.user.is_authenticated:
             raise PermissionDenied('У вас нет прав на снятие с публикации!')
         return super().handle_no_permission()
