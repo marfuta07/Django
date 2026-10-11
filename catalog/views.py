@@ -15,10 +15,22 @@ from catalog.services import get_products_by_category
 
 
 class HomeView(ListView):
-    """Главная страница с каталогом товаров (доступна всем)"""
+    """Главная страница с низкоуровневым кэшированием списка"""
     model = Product
     template_name = 'catalog/home.html'
     context_object_name = 'products'
+
+    def get_queryset(self):
+        """Сначала проверяем кэш, если пусто — грузим из БД"""
+        cache_key = 'home_products_list'
+        products = cache.get(cache_key)
+
+        if products is None:
+            # Кэш пуст — загружаем из БД
+            products = list(Product.objects.select_related('category').all())
+            cache.set(cache_key, products, 60 * 15)   # 15 минут
+
+        return products
 
 
 class ContactsView(TemplateView):
