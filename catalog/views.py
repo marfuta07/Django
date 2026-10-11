@@ -10,6 +10,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from catalog.models import Product, Category
 from catalog.forms import ContactForm, ProductForm
+from catalog.services import get_products_by_category
+
 
 
 class HomeView(ListView):
@@ -158,3 +160,24 @@ class ProductUnpublishView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('catalog:product_detail', kwargs={'pk': self.object.pk})
+
+class CategoryProductsView(ListView):
+    """Список товаров в категории"""
+    model = Product
+    template_name = 'catalog/category_products.html'
+    context_object_name = 'products'
+
+    def get_queryset(self):
+        """Используем сервисную функцию"""
+        category_id = self.kwargs.get('category_id')
+        return get_products_by_category(category_id)
+
+    def get_context_data(self, **kwargs):
+        """Добавляем категорию в контекст"""
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs.get('category_id')
+        try:
+            context['category'] = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            context['category'] = None
+        return context

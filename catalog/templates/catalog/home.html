@@ -42,10 +42,10 @@
                         {{ product.description|truncatechars:100 }}
                     </p>
                     <small class="text-muted mb-3">
-                        Категория: {{ product.category.name }}
-                        {% if product.owner %}
-                            | Владелец: {{ product.owner.email }}
-                        {% endif %}
+                        Категория:
+                        <a href="{% url 'catalog:category_products' product.category.pk %}">
+                            {{ product.category.name }}
+                        </a>
                     </small>
 
                     <div class="mt-auto">
